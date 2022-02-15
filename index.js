@@ -1,11 +1,18 @@
 require("dotenv").config();
+
 const express = require("express");
 const app = express();
+app.use(express.json());
+
 const db = require("./db");
 const { v4: uuidv4 } = require("uuid");
+const logger = require("./logger");
+
 const port = process.env.PORT || 9000;
 app.listen(port, () => console.log(`Listening on port no. ${port}`));
-app.use(express.json());
+
+// Routes
+logger.info("Hello logger");
 app.post("/todo", async (req, res) => {
 	try {
 		const { description, dueDate, dueTime, timeZone } = req.body;
