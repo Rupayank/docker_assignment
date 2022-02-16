@@ -6,7 +6,7 @@ const pool = new POOL({
 	host: "localhost",
 	port: process.env.PGPORT,
 });
-pool.on("connect", () => {
-	console.log("Connected to DB!");
-});
+// pool.on("connect", () => {
+// 	console.log("Connected to DB!");
+// });
 module.exports = pool;

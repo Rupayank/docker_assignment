@@ -6,16 +6,17 @@ app.use(express.json());
 
 const db = require("./db");
 const { v4: uuidv4 } = require("uuid");
+const moment = require("moment-timezone");
 const logger = require("./logger");
 
 const port = process.env.PORT || 9000;
 app.listen(port, () => console.log(`Listening on port no. ${port}`));
 
 // Routes
-logger.info("Hello logger");
 app.post("/todo", async (req, res) => {
 	try {
 		const { description, dueDate, dueTime, timeZone } = req.body;
+		// console.log(dueDate, moment.utc(dueTime).format());
 		const id = uuidv4();
 		const newTodo = await db.query(
 			`INSERT INTO public."todoInfo" VALUES ($1,$2,$3,$4,$5) RETURNING *`,
@@ -27,10 +28,20 @@ app.post("/todo", async (req, res) => {
 		res.status(500).send({ message: err });
 	}
 });
-app.get("/todo", async (req, res) => {
+app.get("/todo/all", async (req, res) => {
 	try {
-		const allTodo = await db.query(`SELECT * FROM public."todoInfo"`);
-		res.status(200).send(allTodo.rows);
+		// var zone_name = moment.tz.guess();
+		// var timezone = moment.tz(zone_name).zoneAbbr();
+		// console.log(zone_name);
+		const fullDate = moment.utc();
+		const time = fullDate.format("HH:mm:ss");
+		const date = fullDate.format("YYYY-MM-DD");
+		console.log(time, date);
+		const allTodo = await db.query(
+			`SELECT * FROM public."todoInfo" WHERE task_due_date>=$1 AND task_due_time>$2`,
+			[date, time]
+		);
+		res.status(200).send({ result: allTodo.rows, message: "Pending todos" });
 	} catch (err) {
 		console.log(err);
 	}
