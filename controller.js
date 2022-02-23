@@ -2,12 +2,19 @@ const { v4: uuidv4 } = require("uuid");
 const db = require("./db");
 const moment = require("moment-timezone");
 const logger = require("./logger");
-
 module.exports = {
+	utcConverter: function (fullDate) {
+		// var zone_name = moment.tz.guess();
+		// var timezone = moment.tz(zone_name).zoneAbbr();
+		// console.log(zone_name);
+		const time = fullDate.format("HH:mm:ss");
+		const date = fullDate.format("YYYY-MM-DD");
+		return { time, date };
+	},
 	async addNewTodo(req, res) {
 		try {
 			const { description, dueDate, dueTime, timeZone } = req.body;
-			// console.log(dueDate, moment.utc(dueTime).format());
+			logger.debug(dueDate, moment.utc(dueTime).format());
 			const id = uuidv4();
 			const newTodo = await db.query(
 				`INSERT INTO public."todoInfo" VALUES ($1,$2,$3,$4,$5) RETURNING *`,
@@ -15,26 +22,24 @@ module.exports = {
 			);
 			res.status(200).send(newTodo.rows[0]);
 		} catch (err) {
-			console.log(err);
+			logger.error(err);
 			res.status(500).send({ message: err });
 		}
 	},
 	async getAllPendingToDo(req, res) {
 		try {
-			// var zone_name = moment.tz.guess();
-			// var timezone = moment.tz(zone_name).zoneAbbr();
-			// console.log(zone_name);
-			const fullDate = moment.utc();
-			const time = fullDate.format("HH:mm:ss");
-			const date = fullDate.format("YYYY-MM-DD");
-			console.log(time, date);
+			const { time, date } = module.exports.utcConverter(moment.utc());
+			// const fullDate = moment.utc();
+			logger.info(time);
+			logger.info(date);
+			// db.createTodo(req.body);
 			const allTodo = await db.query(
 				`SELECT * FROM public."todoInfo" WHERE task_due_date>=$1 AND task_due_time>$2`,
 				[date, time]
 			);
 			res.status(200).send({ result: allTodo.rows, message: "Pending todos" });
 		} catch (err) {
-			console.log(err);
+			logger.error(err);
 		}
 	},
 	async getParticularToDo(req, res) {
@@ -45,7 +50,7 @@ module.exports = {
 			);
 			res.status(200).send(todo.rows);
 		} catch (err) {
-			console.log(err);
+			logger.error(err);
 		}
 	},
 	async updateDescription(req, res) {
@@ -56,7 +61,7 @@ module.exports = {
 			);
 			res.status(200).send({ message: "Description updated" });
 		} catch (err) {
-			console.log(err);
+			logger.error(err);
 		}
 	},
 	async deleteToDo(req, res) {
@@ -66,7 +71,7 @@ module.exports = {
 			]);
 			res.status(200).send({ message: "Deleted" });
 		} catch (err) {
-			console.log(err);
+			logger.error(err);
 		}
 	},
 };

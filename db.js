@@ -9,4 +9,8 @@ const pool = new POOL({
 // pool.on("connect", () => {
 // 	console.log("Connected to DB!");
 // });
+pool.connect(function (err) {
+	if (err) throw err;
+	console.log("Connected to DB!");
+});
 module.exports = pool;
